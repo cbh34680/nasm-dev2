@@ -162,7 +162,7 @@ print_uint:
     div qword [div_dq_10]                       ; 定数 10 で割る
 
     mov cl, [dec_chars + rdx]
-    mov [r8], cl                                ; rbp-24 からの領域に文字を保存
+    mov [r8], cl                                ; rbp-32 からの領域に文字を保存
     inc r8
 
     test rax, rax
@@ -170,19 +170,19 @@ print_uint:
 
     mov byte [r8], 0                            ; '\0' 終端
 
-    mov rax, rbp
+    mov rax, rbp                                ; rax - (rbp-32) = 文字列の長さ
     sub rax, PRINT_UINT_STACK_SIZE
     sub r8, rax                                 ; 文字列長が r8 に入る
 
     lea rdi, [rbp - PRINT_UINT_STACK_SIZE]
     mov rsi, r8
 
-    sub rsp, 8
     push rdi
+    sub rsp, 8                                  ; アライメントを 16 に合わせる
     assert_call_alignment
     call reverse_string
-    pop rdi
     add rsp, 8
+    pop rdi
 
     assert_call_alignment
     call print_string
