@@ -1,29 +1,9 @@
-
+;[bits 64]
 global exit, string_length, print_string, print_char, print_newline, \
     print_uint
 
+%include "lib.inc"
 
-%macro assert_func_entry_alignment 0
-    test rsp, 7
-    jnz %%bad
-    test rsp, 8
-    jnz %%ok
-%%bad:
-    ud2
-%%ok:
-%endmacro
-
-%macro assert_call_alignment 0
-    test rsp, 0xf
-    jz %%ok
-    ud2
-%%ok:
-%endmacro
-
-
-%define STDOUT_FILENO 1
-%define sys_write 1
-%define sys_exit 60
 
 section .rodata
 dec_chars: db "0123456789"
@@ -31,7 +11,6 @@ div_dq_10: dq 10
 
 
 section .text
-
 ; exit
 ; 引数1:RDI) リターンコード
 exit:

@@ -1,10 +1,14 @@
 ;bits 64
 global _start
 
+extern exit, string_length, print_string, print_char, print_newline, \
+    print_uint
+
 %include "lib.inc"
 
+
 section .rodata
-start_msg: db "This is a program for learning purposes.", 0
+start_msg: db "This is a program for learning purposes.", 0xA, 0
 
 ;str1: db "Hello\n"             ; このように書くと 'H' 'e' 'l' 'l' 'o' '\' 'n' の 7 文字と解釈される
 str1:   db "Hello"
@@ -17,7 +21,6 @@ section .text
 _start:
     lea rdi, [start_msg]
     call print_string
-    call print_newline
 
     mov eax, str1_len           ; rax=6
 
