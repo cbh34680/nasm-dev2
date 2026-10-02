@@ -17,6 +17,7 @@ section .text
 _start:
     lea rdi, [start_msg]
     call print_string
+    call print_newline
 
     mov eax, str1_len           ; rax=6
 

@@ -3,8 +3,18 @@ global exit, string_length, print_string, print_char, print_newline, \
     print_uint
 
 
-%macro assert_stack_aligned 0
-    test rsp, 15
+%macro assert_func_entry_alignment 0
+    test rsp, 7
+    jnz %%bad
+    test rsp, 8
+    jnz %%ok
+%%bad:
+    ud2
+%%ok:
+%endmacro
+
+%macro assert_call_alignment 0
+    test rsp, 0xf
     jz %%ok
     ud2
 %%ok:
@@ -25,6 +35,7 @@ section .text
 ; exit
 ; 引数1:RDI) リターンコード
 exit:
+    assert_func_entry_alignment
     mov eax, sys_exit
     syscall
 
@@ -32,6 +43,7 @@ exit:
 ; 文字列長の算出
 ; 引数1:RDI) 文字列の先頭アドレス
 string_length:
+    assert_func_entry_alignment
     mov rax, rdi
     ;lea rax, [rdi]             ; 上記と同じ意味。計算が必要なときは lea を使う
 
@@ -52,10 +64,11 @@ string_length:
 ; 文字列出力
 ; 引数1:RDI) 文字列の先頭アドレス
 print_string:
+    assert_func_entry_alignment
     sub rsp, 8                  ; アライメントを 16 バイト境界に合わせる
 
     mov rsi, rdi                ; 引数の文字列のアドレスを第 2 引数に設定
-    assert_stack_aligned
+    assert_call_alignment
     call string_length
     mov rdx, rax                ; 文字列長を第 3 引数に設定
 
@@ -70,12 +83,13 @@ print_string:
 ; 1 文字出力
 ; 引数1:RDI) 文字(DIL)
 print_char:
+    assert_func_entry_alignment
     push rbp                    ; ここでスタックを 8 バイト下げているので、戻りアドレスと合わせて 16 バイト境界になる
     mov rbp, rsp
 
-    sub rsp, 16                 ; call 利用時のスタックのアライメントは 16 バイトなので、16 バイト単位で広げる
-                                ; rsp のアドレスが 16 の倍数になる必要がある
-                                ; !! rbp を push しないときは 8 + 16 の倍数として考える必要がある
+    sub rsp, 16                 ; call 前に rsp を 16 バイト境界に合わせる
+                                ; push rbp 後は rsp % 16 == 0 のため、
+                                ; 16 の倍数を減算してもアライメントは維持される
     mov [rbp - 1], dil
 
     mov eax, sys_write
@@ -93,10 +107,11 @@ print_char:
 ; 改行を出力
 ; 引数なし
 print_newline:
+    assert_func_entry_alignment
     sub rsp, 8                  ; アライメントを 16 バイト境界に合わせる
 
     mov edi, 0xA                ; '\n'
-    assert_stack_aligned
+    assert_call_alignment
     call print_char
 
     add rsp, 8
@@ -107,6 +122,7 @@ print_newline:
 ; 引数1:RDI) 文字列の先頭アドレス
 ; 引数2:RSI) 文字列長
 reverse_string:
+    assert_func_entry_alignment
     lea rdx, [rdi + rsi]
 
 .loop:
@@ -130,46 +146,47 @@ reverse_string:
 
 ; 符号なし 64 ビット数値の 10 進数出力
 ; 引数1:RDI) 数値
-print_uint:
-    %define STACK_SIZE 32
+%define PRINT_UINT_STACK_SIZE 32
 
+print_uint:
+    assert_func_entry_alignment
     push rbp
     mov rbp, rsp
-    sub rsp, STACK_SIZE
+    sub rsp, PRINT_UINT_STACK_SIZE
 
-    lea r8, [rbp - STACK_SIZE]              ; 文字列化した領域
-    mov rax, rdi                    ; 割られる数
+    lea r8, [rbp - PRINT_UINT_STACK_SIZE]       ; 文字列化した領域
+    mov rax, rdi                                ; 割られる数
 
 .loop:
-    xor rdx, rdx                    ; 余り
-    div qword [div_dq_10]           ; 定数 10 で割る
+    xor rdx, rdx                                ; 余り
+    div qword [div_dq_10]                       ; 定数 10 で割る
 
     mov cl, [dec_chars + rdx]
-    mov [r8], cl                    ; rbp-24 からの領域に文字を保存
+    mov [r8], cl                                ; rbp-24 からの領域に文字を保存
     inc r8
 
     test rax, rax
     jnz .loop
 
-    mov byte [r8], 0                ; '\0' 終端
+    mov byte [r8], 0                            ; '\0' 終端
 
     mov rax, rbp
-    sub rax, STACK_SIZE
-    sub r8, rax                     ; 文字列長が r8 に入る
+    sub rax, PRINT_UINT_STACK_SIZE
+    sub r8, rax                                 ; 文字列長が r8 に入る
 
-    lea rdi, [rbp - STACK_SIZE]
+    lea rdi, [rbp - PRINT_UINT_STACK_SIZE]
     mov rsi, r8
-    push rdi
-    push r8
-    assert_stack_aligned
-    call reverse_string
-    pop rax
-    pop rdi
 
-    assert_stack_aligned
+    sub rsp, 8
+    push rdi
+    assert_call_alignment
+    call reverse_string
+    pop rdi
+    add rsp, 8
+
+    assert_call_alignment
     call print_string
 
 .next:
-    %undef STACK_SIZE
     leave
     ret
