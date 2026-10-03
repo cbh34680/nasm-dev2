@@ -1,4 +1,7 @@
 
+システムコール一覧
+    https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/?hl=ja-JP
+
 
 Linux 64bit (System V ABI) の関数ルール
 

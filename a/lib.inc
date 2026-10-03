@@ -19,7 +19,10 @@
 %endmacro
 
 
+%define STDIN_FILENO 0
 %define STDOUT_FILENO 1
+
+%define sys_read 0
 %define sys_write 1
 %define sys_exit 60
 

@@ -1,6 +1,6 @@
 ;[bits 64]
 global exit, string_length, print_string, print_char, print_newline, \
-    print_uint
+    print_uint, print_int, read_char
 
 %include "lib.inc"
 
@@ -100,7 +100,7 @@ print_newline:
 ; 文字列を反転する
 ; 引数1:RDI) 文字列の先頭アドレス
 ; 引数2:RSI) 文字列長
-reverse_string:
+string_reverse:
     assert_func_entry_alignment
     lea rdx, [rdi + rsi]
 
@@ -138,9 +138,10 @@ print_uint:
 
 .loop:
     xor rdx, rdx                                ; 余り
-    div qword [div_dq_10]                       ; 定数 10 で割る
+    div qword [rel div_dq_10]                   ; 定数 10 で割る
 
-    mov cl, [dec_chars + rdx]
+    lea r9, [rel dec_chars]
+    mov cl, [r9 + rdx]
     mov [r8], cl                                ; rbp-32 からの領域に文字を保存
     inc r8
 
@@ -159,7 +160,7 @@ print_uint:
     push rdi
     sub rsp, 8                                  ; アライメントを 16 に合わせる
     assert_call_alignment
-    call reverse_string
+    call string_reverse
     add rsp, 8
     pop rdi
 
@@ -167,5 +168,58 @@ print_uint:
     call print_string
 
 .next:
+    leave
+    ret
+
+
+; 符号付き 64 ビット数値の 10 進数出力
+; 引数1:RDI) 数値
+print_int:
+    assert_func_entry_alignment
+    push rbx
+    mov rbx, rdi
+
+    ;bt rdi, 63                              ; 先頭のビットが立っているか確認
+    ;jnc .positive                           ; bits[63] == 0 --> 正数
+    test rdi, rdi                           ; 負数のときは SF=1 になる
+    jns .positive                           ; SF==0 --> 正数
+
+    neg rbx                                 ; 負数なら 2 の補数を計算
+
+    mov dil, '-'                            ; マイナス記号を出力
+    assert_call_alignment
+    call print_char
+
+.positive:
+    mov rdi, rbx
+    assert_call_alignment
+    call print_uint
+
+    pop rbx
+    ret
+
+
+; 標準入力から 1 文字入力
+; 引数なし
+read_char:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+
+    mov eax, sys_read
+    mov edi, STDIN_FILENO
+    lea rsi, [rbp - 16]
+    mov edx, 1
+    assert_call_alignment
+    syscall
+
+    test rax, rax
+    jle .end                        ; Ctrl+D(=0) 又はエラー(<0) のとき
+
+    xor rax, rax
+    mov al, [rbp - 16]
+
+.end:
     leave
     ret

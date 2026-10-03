@@ -1,0 +1,6 @@
+
+# CF
+-exec p (($eflags >> 0) & 1)
+
+# ZF
+-exec p (($eflags >> 6) & 1)

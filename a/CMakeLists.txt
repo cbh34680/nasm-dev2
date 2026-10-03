@@ -7,4 +7,5 @@ target_include_directories(a PRIVATE
 )
 
 # -no-pie フラグの設定（GCCリンカを使用する場合）
+#target_link_options(a PRIVATE -nostdlib -pie -e _start --dynamic-linker=/lib64/ld-linux-x86-64.so.2)
 target_link_options(a PRIVATE -nostdlib -no-pie -e _start)
