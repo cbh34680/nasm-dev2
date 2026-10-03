@@ -17,6 +17,7 @@ str1_len: equ $ - str1
         db 0
 
 input_msg: db "Input> ", 0
+skip_msg: db "@ Skip Char - ", 0
 
 leave_msg: db "@ Program End", 0xA, 0
 
@@ -28,7 +29,9 @@ _start:
 
     ; 最初のメッセージ
     lea rdi, [rel start_msg]
+    assert_callee_saved_entry
     call print_string
+    assert_callee_saved_exit
 
     mov eax, str1_len               ; rax=6
 
@@ -38,17 +41,25 @@ _start:
     call print_string
 
     mov edi, 'A'                    ; 16 ビットレジスタの di, dil では上位ビットが 0 にならないので edi を使う
+    assert_callee_saved_entry
     call print_char
+    assert_callee_saved_exit
+    assert_callee_saved_entry
     call print_newline
+    assert_callee_saved_exit
 
     ; 符号なし 64bit 数値の出力
     mov rdi, 12345678901234567890
+    assert_callee_saved_entry
     call print_uint
+    assert_callee_saved_exit
     call print_newline
 
     ; 符号付き 64bit 数値の出力
     mov rdi, -9045678901234567890
+    assert_callee_saved_entry
     call print_int
+    assert_callee_saved_exit
     call print_newline
 
     ; 入力を促すメッセージを出力
@@ -56,28 +67,28 @@ _start:
     call print_string
 
     ; 1 文字の入力
+    assert_callee_saved_entry
     call read_char
-    test eax, eax                   ; 入力値のチェック
+    assert_callee_saved_exit
+    test eax, eax                       ; 入力値のチェック
     jz .after_getc
 
-    mov ebx, eax
+    mov r15d, eax                       ; rax は call で変更されるので、r15 を入力値として利用
 
     ; 入力された文字を出力
     mov edi, eax
     call print_char
     call print_newline
 
-    ; バッファ中の余分な文字をクリア
-    mov eax, ebx
-
 .flush_buffer:
-    cmp al, 0xA
+    cmp r15b, 0xA                       ; 改行になるまで読み飛ばす
     je .after_getc
 
-    call read_char
-    test eax, eax                   ; 入力値のチェック
+    call read_char                      ; バッファの値を取得
+    test eax, eax                       ; 入力値のチェック
     jz .after_getc
 
+    mov r15d, eax
     jmp .flush_buffer
 
 .after_getc:

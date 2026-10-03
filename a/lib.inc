@@ -18,6 +18,38 @@
 %%ok:
 %endmacro
 
+%macro assert_callee_saved_entry 0
+    push rbx
+    push rbp
+    push r12
+    push r13
+    push r14
+    push r15
+%endmacro
+
+%macro assert_callee_saved_exit 0
+    cmp r15, [rsp]
+    jne %%bad
+    cmp r14, [rsp + 8]
+    jne %%bad
+    cmp r13, [rsp + 16]
+    jne %%bad
+    cmp r12, [rsp + 24]
+    jne %%bad
+    cmp rbp, [rsp + 32]
+    jne %%bad
+    cmp rbx, [rsp + 40]
+    jne %%bad
+
+    add rsp, 48
+    jmp %%ok
+
+%%bad:
+    ud2
+
+%%ok:
+%endmacro
+
 
 %define STDIN_FILENO 0
 %define STDOUT_FILENO 1
