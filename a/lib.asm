@@ -201,24 +201,26 @@ print_int:
 
 ; 標準入力から 1 文字入力
 ; 引数なし
+%define READ_CHAR_STACK_SIZE 16
+
 read_char:
     assert_func_entry_alignment
     push rbp
     mov rbp, rsp
-    sub rsp, 16
+    sub rsp, READ_CHAR_STACK_SIZE
 
     mov eax, sys_read
     mov edi, STDIN_FILENO
-    lea rsi, [rbp - 16]
+    lea rsi, [rbp - READ_CHAR_STACK_SIZE]
     mov edx, 1
     assert_call_alignment
     syscall
 
     test rax, rax
-    jle .end                        ; Ctrl+D(=0) 又はエラー(<0) のとき
+    jle .end                                ; Ctrl+D(=0) 又はエラー(<0) のとき
 
     xor rax, rax
-    mov al, [rbp - 16]
+    mov al, [rbp - READ_CHAR_STACK_SIZE]
 
 .end:
     leave
