@@ -179,14 +179,14 @@ print_int:
     push rbx
     mov rbx, rdi
 
-    ;bt rdi, 63                              ; 先頭のビットが立っているか確認
-    ;jnc .positive                           ; bits[63] == 0 --> 正数
-    test rdi, rdi                           ; 負数のときは SF=1 になる
-    jns .positive                           ; SF==0 --> 正数
+    ;bt rdi, 63                                  ; 先頭のビットが立っているか確認
+    ;jnc .positive                               ; bits[63] == 0 --> 正数
+    test rdi, rdi                               ; 負数のときは SF=1 になる
+    jns .positive                               ; SF==0 --> 正数
 
-    neg rbx                                 ; 負数なら 2 の補数を計算
+    neg rbx                                     ; 負数なら 2 の補数を計算
 
-    mov dil, '-'                            ; マイナス記号を出力
+    mov dil, '-'                                ; マイナス記号を出力
     assert_call_alignment
     call print_char
 
@@ -217,7 +217,7 @@ read_char:
     syscall
 
     test rax, rax
-    jle .end                                ; Ctrl+D(=0) 又はエラー(<0) のとき
+    jle .end                                    ; Ctrl+D(=0) 又はエラー(<0) のとき
 
     xor rax, rax
     mov al, [rbp - READ_CHAR_STACK_SIZE]
