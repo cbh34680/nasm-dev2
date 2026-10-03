@@ -2,3 +2,15 @@
 /*.sh
 
 *.swp
+*.swo
+*.o
+*.a
+*.so
+
+.env
+*.pem
+*.key
+*.crt
+*.p12
+*.db
+
