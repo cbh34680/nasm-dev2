@@ -24,7 +24,7 @@ leave_msg: db "@ Program End", 0xA, 0
 
 section .text
 _start:
-    and rsp, -16                    ; -16=0xfffffffffffffff0 と rsp を and することで、下位 4bit(0x0-0x15) の範囲をクリアする
+    and rsp, -16                    ; -16=0xfffffffffffffff0 と rsp を and することで、下位 4bit(0x0-0xf) の範囲をクリアする
                                     ; 16byte 境界にそろえる (rsp%16 == 0)
 
     ; 最初のメッセージ
@@ -40,7 +40,7 @@ _start:
 
     call print_string
 
-    mov edi, 'A'                    ; 16 ビットレジスタの di, dil では上位ビットが 0 にならないので edi を使う
+    mov edi, 'A'                    ; DI/DIL への書き込みでは上位ビットが保持されるので EDI を使う
     assert_callee_saved_entry
     call print_char
     assert_callee_saved_exit
@@ -72,24 +72,18 @@ _start:
     assert_callee_saved_exit
     test eax, eax                       ; 入力値のチェック
     jz .after_getc
-
-    mov r15d, eax                       ; rax は call で変更されるので、r15 を入力値として利用
+    cmp eax, 0xA                        ; 改行なら表示しない
+    je .after_getc
 
     ; 入力された文字を出力
     mov edi, eax
     call print_char
     call print_newline
 
-.flush_buffer:
-    cmp r15b, 0xA                       ; 改行になるまで読み飛ばす
-    je .after_getc
-
-    call read_char                      ; バッファの値を取得
-    test eax, eax                       ; 入力値のチェック
-    jz .after_getc
-
-    mov r15d, eax
-    jmp .flush_buffer
+    ; 残りの入力バッファーをクリア
+    assert_callee_saved_entry
+    call flush_stdin
+    assert_callee_saved_exit
 
 .after_getc:
     ; 最後のメッセージを出力
@@ -98,3 +92,35 @@ _start:
 
     mov edi, 2
     call exit
+
+
+; 入力バッファーをクリア
+; 引数なし
+flush_stdin:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+
+.loop:
+    assert_call_alignment
+    call read_char
+    test eax, eax                       ; エラー又は中断なら終了
+    jz .exit
+    cmp eax, 0xA                        ; 改行になったら終了
+    je .exit
+
+    mov dword [rbp - 16], eax
+
+    lea rdi, [rel skip_msg]
+    call print_string
+
+    mov edi, [rbp - 16]
+    call print_char
+    call print_newline
+
+    jmp .loop
+
+.exit:
+    leave
+    ret
