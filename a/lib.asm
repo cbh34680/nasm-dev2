@@ -228,7 +228,9 @@ read_char:
     ret
 
 
-;
+; 標準入力から単語を入力
+; 引数1:RDI) 書き込みバッファのアドレス
+; 引数2:RSI) 書き込みバッファのサイズ
 %define READ_WORD_SAVE_RBX 8
 %define READ_WORD_ARG_ADDR 24
 %define READ_WORD_ARG_SIZE 32
@@ -248,21 +250,33 @@ read_word:
 .loop:
     mov rax, rbx
     sub rax, [rbp - READ_WORD_ARG_ADDR]
-    cmp rax, [rbp - READ_WORD_ARG_SIZE]         ; 書き込み位置がバッファサイズを超えるかチェック
+    cmp rax, [rbp - READ_WORD_ARG_SIZE]         ; 書き込み位置がバッファサイズ以上かチェック
     jae .fault
 
     assert_call_alignment
-    call read_char
+    call read_char                              ; 1 文字入力
     test al, al
     jz .fault
     cmp al, 0xA
     je .term
 
-    cmp al, ' '                                 ; 空白/タブは読み飛ばす
+    cmp rbx, [rbp - READ_WORD_ARG_ADDR]         ; 既に単語入力が始まっているかをチェック
+    jne .started
+
+    cmp al, ' '                                 ; 先頭の空白/タブは読み飛ばす
     je .loop
     cmp al, 0x9
     je .loop
 
+    jmp .store
+
+.started:
+    cmp al, ' '                                 ; 単語が開始された後に発生した空白/タブなら終了
+    je .term
+    cmp al, 0x9
+    je .term
+
+.store:
     mov byte [rbx], al                          ; 入力値をバッファへ書き込み
     inc rbx
     jmp .loop

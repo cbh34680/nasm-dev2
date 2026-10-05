@@ -20,7 +20,7 @@ input_msg: db "Input> ", 0
 
 leave_msg: db "@ Program End", 0xA, 0
 
-%define READ_WORD_BUFSIZ 16
+%define READ_WORD_BUF 16
 
 section .text
 _start:
@@ -28,7 +28,7 @@ _start:
                                     ; 16byte 境界にそろえる (rsp%16 == 0)
     mov rbp, rsp
 
-    sub rsp, READ_WORD_BUFSIZ       ; read_word 用バッファサイズ
+    sub rsp, READ_WORD_BUF          ; read_word 用バッファサイズ
 
     ; 最初のメッセージ
     lea rdi, [rel start_msg]
@@ -96,21 +96,26 @@ _start:
     call print_string
 
     ; 単語の入力
-    lea rdi, [rbp - READ_WORD_BUFSIZ]
-    mov esi, READ_WORD_BUFSIZ
+    lea rdi, [rbp - READ_WORD_BUF]
+    mov esi, READ_WORD_BUF
     save_callee_saved
     call read_word
     assert_callee_saved_exit
 
-    test rax, rax
+    test rax, rax                               ; 入力エラーのチェック
     jz .after_read_word
 
-    mov rdi, rax
+    mov rdi, rax                                ; 入力文字列を表示
     call print_string
     call print_newline
 
-.after_read_word:
+    lea rdi, [rbp - READ_WORD_BUF]              ; 入力文字列の長さを表示
+    call string_length
+    mov rdi, rax
+    call print_uint
+    call print_newline
 
+.after_read_word:
     ; 最後のメッセージを出力
     lea edi, [rel leave_msg]
     call print_string
