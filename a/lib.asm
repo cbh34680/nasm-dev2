@@ -1,14 +1,15 @@
 ;[bits 64]
 global exit, string_length, print_string, print_char, print_newline, \
-    print_uint, print_int, read_char
+    print_uint, print_int, read_char, read_word, flush_stdin
 
 %include "lib.inc"
 
 
 section .rodata
-dec_chars: db "0123456789"
+dec_chars: db "0123456789", 0
 div_dq_10: dq 10
 
+skip_msg: db "@ Skip Char - ", 0
 
 section .text
 ; exit
@@ -108,7 +109,7 @@ string_reverse:
     dec rdx
 
     cmp rdi, rdx
-    jge .last
+    jae .last
 
     mov ah, [rdi]
     mov al, [rdx]
@@ -223,5 +224,92 @@ read_char:
     mov al, [rbp - READ_CHAR_STACK_SIZE]
 
 .end:
+    leave
+    ret
+
+
+;
+%define READ_WORD_SAVE_RBX 8
+%define READ_WORD_ARG_ADDR 24
+%define READ_WORD_ARG_SIZE 32
+
+read_word:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+
+    ; 各レジスタ値の保存
+    mov [rbp - READ_WORD_SAVE_RBX], rbx
+    mov [rbp - READ_WORD_ARG_ADDR], rdi
+    mov [rbp - READ_WORD_ARG_SIZE], rsi
+    mov rbx, rdi                                ; rbx はバッファ中の書き込み位置をポイント
+
+.loop:
+    mov rax, rbx
+    sub rax, [rbp - READ_WORD_ARG_ADDR]
+    cmp rax, [rbp - READ_WORD_ARG_SIZE]         ; 書き込み位置がバッファサイズを超えるかチェック
+    jae .fault
+
+    assert_call_alignment
+    call read_char
+    test al, al
+    jz .fault
+    cmp al, 0xA
+    je .term
+
+    cmp al, ' '                                 ; 空白/タブは読み飛ばす
+    je .loop
+    cmp al, 0x9
+    je .loop
+
+    mov byte [rbx], al                          ; 入力値をバッファへ書き込み
+    inc rbx
+    jmp .loop
+
+.term:
+    mov byte[rbx], 0
+    mov rax, [rbp - READ_WORD_ARG_ADDR]
+    jmp .end
+
+.fault:
+    mov eax, 0
+    jmp .end
+
+.end:
+    mov rbx, [rbp - READ_WORD_SAVE_RBX]
+
+    leave
+    ret
+
+
+; 入力バッファーをクリア
+; 引数なし
+flush_stdin:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+
+.loop:
+    assert_call_alignment
+    call read_char
+    test eax, eax                       ; エラー又は中断なら終了
+    jz .exit
+    cmp eax, 0xA                        ; 改行になったら終了
+    je .exit
+
+    mov dword [rbp - 16], eax
+
+    lea rdi, [rel skip_msg]
+    call print_string
+
+    mov edi, [rbp - 16]
+    call print_char
+    call print_newline
+
+    jmp .loop
+
+.exit:
     leave
     ret

@@ -1,6 +1,12 @@
 %ifndef LIB_INC
 %define LIB_INC
 
+%macro align16 1
+    ;add %1, 15
+    lea %1, [%1 + 15]               ; フラグレジスタを変更しないのでこちらが良い
+    and %1, -16
+%endmacro
+
 %macro assert_func_entry_alignment 0
     test rsp, 7
     jnz %%bad
@@ -18,7 +24,7 @@
 %%ok:
 %endmacro
 
-%macro assert_callee_saved_entry 0
+%macro save_callee_saved 0
     push rbx
     push rbp
     push r12
