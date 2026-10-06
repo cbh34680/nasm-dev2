@@ -8,7 +8,10 @@
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/build/debug/a/a",
       "environment": [],
-      "args": [],
+      "args": [
+        "<",
+        "${workspaceFolder}/input.txt"
+      ],
       "stopAtEntry": false,
       "externalConsole": false,
       "MIMode": "gdb",

@@ -62,6 +62,13 @@
 
 %define sys_read 0
 %define sys_write 1
+%define sys_ioctl 16
 %define sys_exit 60
+
+%define TCFLSH 0x540B
+
+%define TCIFLUSH    0   ;/* 入力バッファの消去 (Flush input queue) */
+%define TCOFLUSH    1   ;/* 出力バッファの消去 (Flush output queue) */
+%define TCIOFLUSH   2   ;/* 入出力両方バッファの消去 (Flush both queues) */
 
 %endif

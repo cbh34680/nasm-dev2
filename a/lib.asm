@@ -1,6 +1,7 @@
 ;[bits 64]
 global exit, string_length, print_string, print_char, print_newline, \
-    print_uint, print_int, read_char, read_word, flush_stdin
+    print_uint, print_int, read_char, read_word, flush_stdin, \
+    parse_uint
 
 %include "lib.inc"
 
@@ -27,12 +28,12 @@ string_length:
     mov rax, rdi
     ;lea rax, [rdi]             ; 上記と同じ意味。計算が必要なときは lea を使う
 
-.loop:
+.loop_start:
     cmp byte [rax], 0           ; rax が指すアドレスから 1 バイトを 0 と比較
     je .done
 
     inc rax
-    jmp .loop
+    jmp .loop_start
 
 .done:
     sub rax, rdi                ; 引数の rdi と rax の差が文字列長
@@ -105,7 +106,7 @@ string_reverse:
     assert_func_entry_alignment
     lea rdx, [rdi + rsi]
 
-.loop:
+.loop_start:
     dec rdx
 
     cmp rdi, rdx
@@ -118,7 +119,7 @@ string_reverse:
                                 ; REX プレフィックスを必要とするレジスタと ah を同時に指定できない
                                 ; al なら r8 でも OK
     inc rdi
-    jmp .loop
+    jmp .loop_start
 
 .last:
     ret
@@ -137,7 +138,7 @@ print_uint:
     lea r8, [rbp - PRINT_UINT_STACK_SIZE]       ; 文字列化した領域
     mov rax, rdi                                ; 割られる数
 
-.loop:
+.loop_start:
     xor rdx, rdx                                ; 余り
     div qword [rel div_dq_10]                   ; 定数 10 で割る
 
@@ -147,7 +148,7 @@ print_uint:
     inc r8
 
     test rax, rax
-    jnz .loop
+    jnz .loop_start
 
     mov byte [r8], 0                            ; '\0' 終端
 
@@ -218,7 +219,9 @@ read_char:
     syscall
 
     test rax, rax
-    jle .end                                    ; Ctrl+D(=0) 又はエラー(<0) のとき
+    jz .end                                     ; Ctrl+D(=0) のとき
+    js .end                                     ; エラー(<0) のとき
+    ;jle .end                                    ; Ctrl+D(=0) 又はエラー(<0) のとき
 
     xor rax, rax
     mov al, [rbp - READ_CHAR_STACK_SIZE]
@@ -247,7 +250,7 @@ read_word:
     mov [rbp - READ_WORD_ARG_SIZE], rsi
     mov rbx, rdi                                ; rbx はバッファ中の書き込み位置をポイント
 
-.loop:
+.loop_start:
     mov rax, rbx
     sub rax, [rbp - READ_WORD_ARG_ADDR]
     cmp rax, [rbp - READ_WORD_ARG_SIZE]         ; 書き込み位置がバッファサイズ以上かチェック
@@ -263,26 +266,29 @@ read_word:
     cmp rbx, [rbp - READ_WORD_ARG_ADDR]         ; 既に単語入力が始まっているかをチェック
     jne .started
 
+    ; まだ単語が開始されていないときの分岐
     cmp al, ' '                                 ; 先頭の空白/タブは読み飛ばす
-    je .loop
+    je .loop_start
     cmp al, 0x9
-    je .loop
+    je .loop_start
 
     jmp .store
 
 .started:
-    cmp al, ' '                                 ; 単語が開始された後に発生した空白/タブなら終了
+    ; 単語が開始されたあとの分岐
+    cmp al, ' '                                 ; 空白/タブなら終了
     je .term
     cmp al, 0x9
     je .term
 
 .store:
-    mov byte [rbx], al                          ; 入力値をバッファへ書き込み
+    ; 入力値をバッファへ書き込み
+    mov byte [rbx], al
     inc rbx
-    jmp .loop
+    jmp .loop_start
 
 .term:
-    mov byte[rbx], 0
+    mov byte[rbx], 0                            ; '\0' 終端
     mov rax, [rbp - READ_WORD_ARG_ADDR]
     jmp .end
 
@@ -291,21 +297,20 @@ read_word:
     jmp .end
 
 .end:
-    mov rbx, [rbp - READ_WORD_SAVE_RBX]
-
+    mov rbx, [rbp - READ_WORD_SAVE_RBX]         ; rbx を復元
     leave
     ret
 
 
 ; 入力バッファーをクリア
 ; 引数なし
-flush_stdin:
+flush_stdin0:
     assert_func_entry_alignment
     push rbp
     mov rbp, rsp
     sub rsp, 16
 
-.loop:
+.loop_start:
     assert_call_alignment
     call read_char
     test eax, eax                       ; エラー又は中断なら終了
@@ -322,8 +327,69 @@ flush_stdin:
     call print_char
     call print_newline
 
-    jmp .loop
+    jmp .loop_start
 
 .exit:
+    leave
+    ret
+
+
+flush_stdin:
+    assert_func_entry_alignment
+    sub rsp, 8
+
+    mov eax, sys_ioctl
+    mov edi, STDIN_FILENO
+    mov rsi, TCFLSH
+    mov rdx, TCIFLUSH
+    syscall
+
+    add rsp, 8
+    ret
+
+
+;
+%define PARSE_UINT_ARG_ADDR 8
+
+parse_uint:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+
+    sub rsp, 16
+    mov [rbp - PARSE_UINT_ARG_ADDR], rdi        ; 入力文字列の先頭アドレスを保存
+
+    xor r8, r8                                  ; 戻り数値保存
+    xor ecx, ecx                                ; 入力文字列の 1byte
+
+.loop_start:
+    mov cl, [rdi]
+
+    test cl, cl
+    jz .loop_break                              ; '\0' なら終了
+
+    sub cl, '0'
+    jc .loop_break                              ; 0 未満なら終了
+    cmp cl, 9
+    ja .loop_break                              ; 9 超過なら終了
+
+    mov rax, r8
+    mov edx, 10
+    mul rdx                                     ; 10 倍して桁溢れなら終了
+    jc .loop_break
+
+    add rax, rcx                                ; 加算して桁溢れなら終了
+    jc .loop_break
+
+    mov r8, rax
+    inc rdi
+    jmp .loop_start
+
+.loop_break:
+    mov rax, r8
+
+    sub rdi, [rbp - PARSE_UINT_ARG_ADDR]        ; 処理した長さを rdx に保存
+    mov rdx, rdi
+
     leave
     ret

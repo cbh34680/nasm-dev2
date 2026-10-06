@@ -6,15 +6,8 @@
     ],
     "settings": {
         "debug.allowBreakpointsEverywhere": true,
-        "nasm.outputFormat": "elf64",
         "nasm.extraFlags": [
             "-I./a/"
         ],
-        "[json]": {
-            "editor.formatOnSave": true
-        },
-        "[jsonc]": {
-            "editor.formatOnSave": true
-        }
     }
 }

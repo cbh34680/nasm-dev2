@@ -1,6 +1,30 @@
 
-# CF
+# CF (Carry Flag: Bit 0)
 -exec p (($eflags >> 0) & 1)
 
-# ZF
+# PF (Parity Flag: Bit 2)
+-exec p (($eflags >> 2) & 1)
+
+# AF (Auxiliary Carry Flag: Bit 4)
+-exec p (($eflags >> 4) & 1)
+
+# ZF (Zero Flag: Bit 6)
 -exec p (($eflags >> 6) & 1)
+
+# SF (Sign Flag: Bit 7)
+-exec p (($eflags >> 7) & 1)
+
+# IF (Interrupt Enable Flag: Bit 9)
+-exec p (($eflags >> 9) & 1)
+
+# DF (Direction Flag: Bit 10)
+-exec p (($eflags >> 10) & 1)
+
+# OF (Overflow Flag: Bit 11)
+-exec p (($eflags >> 11) & 1)
+
+# eflags 全体を解析表示（[ CF ZF IF ] のように立っているフラグ名が表示されます）
+-exec p $eflags
+
+# レジスタ一覧表示（eflags のフラグ解析情報も含まれます）
+-exec info registers eflags

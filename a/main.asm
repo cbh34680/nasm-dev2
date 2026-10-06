@@ -2,7 +2,8 @@
 global _start
 
 extern exit, string_length, print_string, print_char, print_newline, \
-    print_uint, print_int, read_char, read_word, flush_stdin
+    print_uint, print_int, read_char, read_word, flush_stdin, \
+    parse_uint
 
 %include "lib.inc"
 
@@ -16,11 +17,14 @@ str1:   db "Hello"
 str1_len: equ $ - str1
         db 0
 
-input_msg: db "Input> ", 0
+input_letter_msg: db "Input Letter> ", 0
+input_word_msg: db "Input Word> ", 0
 
 leave_msg: db "@ Program End", 0xA, 0
 
-%define READ_WORD_BUF 16
+%define MAIN_STACK_SIZE 1024
+%define READ_WORD_BUF 32
+%define PARSE_UINT_LENGTH 40
 
 section .text
 _start:
@@ -28,7 +32,7 @@ _start:
                                     ; 16byte 境界にそろえる (rsp%16 == 0)
     mov rbp, rsp
 
-    sub rsp, READ_WORD_BUF          ; read_word 用バッファサイズ
+    sub rsp, MAIN_STACK_SIZE        ; スタックサイズとして 1kb を確保
 
     ; 最初のメッセージ
     lea rdi, [rel start_msg]
@@ -67,7 +71,7 @@ _start:
 
 %if 0
     ; 入力を促すメッセージを出力
-    lea rdi, [rel input_msg]
+    lea rdi, [rel input_letter_msg]
     call print_string
 
     ; 1 文字の入力
@@ -75,7 +79,7 @@ _start:
     call read_char
     assert_callee_saved_exit
     test eax, eax                       ; 入力値のチェック
-    jz .after_getc
+    jz .after_read_char
     cmp eax, 0xA                        ; 改行なら表示しない
     je .after_read_char
 
@@ -92,7 +96,7 @@ _start:
 %endif
 
     ; 入力を促すメッセージを出力
-    lea rdi, [rel input_msg]
+    lea rdi, [rel input_word_msg]
     call print_string
 
     ; 単語の入力
@@ -116,6 +120,25 @@ _start:
     call print_newline
 
 .after_read_word:
+    ; 残りの入力バッファーをクリア
+    call flush_stdin
+
+    ; 文字列->数値変換
+    lea rdi, [rbp - READ_WORD_BUF]
+    save_callee_saved
+    call parse_uint
+    assert_callee_saved_exit
+
+    mov [rbp - PARSE_UINT_LENGTH], rdx
+
+    mov rdi, rax
+    call print_uint
+    call print_newline
+
+    mov rdi, [rbp - PARSE_UINT_LENGTH]
+    call print_uint
+    call print_newline
+
     ; 最後のメッセージを出力
     lea edi, [rel leave_msg]
     call print_string

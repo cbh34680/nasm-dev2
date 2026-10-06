@@ -1,13 +1,20 @@
 {
+    "C_Cpp.intelliSenseEngine": "default",
+    "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": true,
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
-    "files.trimTrailingWhitespace": true,
-    "files.trimFinalNewlines": true,
     "editor.gotoLocation.multipleDefinitions": "goto",
     "editor.autoClosingBrackets": "never",
     "editor.autoClosingComments": "never",
-    "cmake.useCMakePresets": "always",
-    "cmake.configureOnOpen": true,
-    "C_Cpp.intelliSenseEngine": "default",
     "editor.minimap.enabled": false,
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "nasm.outputFormat": "elf64",
+    "[json]": {
+        "editor.formatOnSave": true
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": true
+    }
 }
