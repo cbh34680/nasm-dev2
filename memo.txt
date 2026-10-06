@@ -4,7 +4,6 @@
 
 
 Linux 64bit (System V ABI) の関数ルール
-
     引数の渡し方
         関数に渡す引数は順に以下のレジスタへ格納します。
             第1引数: RDI
@@ -29,7 +28,6 @@ Linux 64bit (System V ABI) の関数ルール
 
 
 Linux 64bit (x86_64 Syscall ABI) のシステムコールルール
-
     引数の渡し方
         システムコールに渡す引数は順に以下のレジスタへ格納します。
             システムコール番号: RAX
@@ -74,7 +72,6 @@ x86-64 汎用レジスタおよび特殊レジスタの用途一覧 (Linux / Sys
 
 
 x86-64 レジスタ対応表
-
     --------------------------------------------------------------------------------
     1. 伝統的な汎用レジスタ (8種)
     --------------------------------------------------------------------------------
@@ -120,3 +117,74 @@ x86-64 レジスタ対応表
                                                     +-------+-------+
                                                     |  ah   |  al   | (8 bit×2) ※上位保持
                                                     +-------+-------+
+
+
+ジャンプ命令
+    命令       意味             主に使う場面
+    ------------------------------------------------
+    je / jz    ==               等しい                          * je と jz は同じ
+    jne / jnz  !=               等しくない                      * jne と jnz は同じ
+    jl         < (signed)       signed整数
+    jle        <= (signed)      signed整数
+    jg         > (signed)       signed整数
+    jge        >= (signed)      signed整数
+    jb         < (unsigned)     unsigned整数
+    jbe        <= (unsigned)    unsigned整数
+    ja         > (unsigned)     unsigned整数
+    jae        >= (unsigned)    unsigned整数
+    jc         CF=1             carry / unsigned overflow等
+
+    l / g 系  = signed
+    b / a 系  = unsigned
+
+    je / jne は signed / unsigned に関係なく使える。
+
+    jc は比較演算そのものではなく、Carry Flag (CF) が 1 のときにジャンプする。
+
+
+フラグレジスタとの関係
+    ZF
+        ZF = 1
+            → 結果が 0
+            → je / jz
+
+        ZF = 0
+            → 結果が 0 ではない
+            → jne / jnz
+
+    signed/unsigned
+        signed 比較
+            jl   : SF != OF
+            jle  : ZF=1 または SF!=OF
+            jg   : ZF=0 かつ SF=OF
+            jge  : SF=OF
+
+        unsigned 比較
+            jb   : CF=1
+            jbe  : CF=1 または ZF=1
+            ja   : CF=0 かつ ZF=0
+            jae  : CF=0
+
+    直接フラグを見る
+        jc   : CF=1
+        jnc  : CF=0
+        jo   : OF=1
+        jno  : OF=0
+        js   : SF=1
+        jns  : SF=0
+        jz   : ZF=1
+        jnz  : ZF=0
+
+
+JC と JO
+    フラグ    意味                         主に見る数値
+    -------------------------------------------------------------
+    CF        Carry Flag                   unsigned
+    OF        Overflow Flag                signed
+
+    OF
+        以下のときに OF が 1 になる
+            正の数 + 正の数 => 負の数
+            負の数 + 負の数 => 正の数
+
+        同じ符号同士の加算なのに符号が変わったら OF=1

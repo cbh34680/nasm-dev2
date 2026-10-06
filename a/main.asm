@@ -34,6 +34,10 @@ _start:
 
     sub rsp, MAIN_STACK_SIZE        ; スタックサイズとして 1kb を確保
 
+    save_callee_saved
+    call code_test
+    assert_callee_saved_exit
+
     ; 最初のメッセージ
     lea rdi, [rel start_msg]
     save_callee_saved
@@ -145,3 +149,14 @@ _start:
 
     mov edi, 2
     call exit
+
+
+; 調査用
+code_test:
+    push rbp
+    mov rbp, rsp
+
+
+
+    leave
+    ret
