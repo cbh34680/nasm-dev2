@@ -2,7 +2,7 @@
 global exit, clear_eflags, \
     string_length, print_string, print_char, print_newline, \
     print_uint, print_int, read_char, read_word, flush_stdin, \
-    parse_uint, parse_int
+    parse_uint, parse_int, string_equals, string_copy
 
 %include "lib.inc"
 
@@ -365,7 +365,10 @@ flush_stdin:
     ret
 
 
-;
+; 文字列->符号なし 64bit 数値変換
+; 引数1:RDI) 文字列の先頭アドレス
+; 戻り値1: RAX) 変換後 64bit 数値
+; 戻り値2: RDX) 処理した文字列の長さ
 %define PARSE_UINT_ARG_ADDR 8
 
 parse_uint:
@@ -374,7 +377,7 @@ parse_uint:
     mov rbp, rsp
 
     sub rsp, 16
-    mov [rbp - PARSE_UINT_ARG_ADDR], rdi        ; 入力文字列の先頭アドレスを保存
+    mov [rbp - PARSE_UINT_ARG_ADDR], rdi        ; 文字列の先頭アドレスを保存
 
     xor r8d, r8d                                ; 戻り数値保存
     xor ecx, ecx                                ; 入力文字列の 1byte
@@ -412,7 +415,10 @@ parse_uint:
     ret
 
 
-;
+; 文字列->符号あり 64bit 数値変換
+; 引数1:RDI) 文字列の先頭アドレス
+; 戻り値1: RAX) 変換後 64bit 数値
+; 戻り値2: RDX) 処理した文字列の長さ
 %define PARSE_INT_ARG_ADDR 8
 
 parse_int:
@@ -473,6 +479,87 @@ parse_int:
     mov rax, r8
     sub rdi, [rbp - PARSE_INT_ARG_ADDR]
     mov rdx, rdi
+
+    leave
+    ret
+
+
+; 文字列の比較
+; 引数1:RDI) 文字列のアドレス
+; 引数2:RSI) 文字列のアドレス
+; 戻り値:RAX)  等しいときは 1、それ以外は 0
+string_equals:
+    assert_func_entry_alignment
+    sub rsp, 8
+
+    cmp rdi, rsi
+    je .equal
+
+    xor eax, eax
+
+.loop_start:
+    mov al, [rdi]
+    mov ah, [rsi]
+
+    cmp al, ah
+    jne .not_equal
+
+    inc rdi
+    inc rsi
+
+    test al, al
+    jnz .loop_start
+
+.equal:
+    mov eax, 1
+    jmp .last
+
+.not_equal:
+    mov eax, 0
+    jmp .last
+
+.last:
+    add rsp, 8
+    ret
+
+
+; 文字列のコピー
+; 引数1:RDI) コピー元文字列のアドレス
+; 引数2:RSI) コピー先バッファのアドレス
+; 引数3:RDX) コピー先バッファのサイズ
+; 戻り値:RAX) 文字列がバッファに収まるときはバッファのアドレス、それ以外は 0
+%define STRING_COPY_SAVE_RSI 8
+
+string_copy:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+
+    mov [rbp - STRING_COPY_SAVE_RSI], rsi
+
+.loop_start:
+    mov rax, rsi
+    sub rax, [rbp - STRING_COPY_SAVE_RSI]
+    cmp rax, rdx                                        ; 空き領域があるかチェック
+    jae .fault
+
+    mov al, [rdi]
+    mov [rsi], al
+
+    inc rdi
+    inc rsi
+
+    test al, al
+    jnz .loop_start
+
+    mov rax, [rbp - STRING_COPY_SAVE_RSI]
+    jmp .last
+
+.fault:
+    mov eax, 0
+
+.last:
 
     leave
     ret

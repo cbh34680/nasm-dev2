@@ -4,7 +4,7 @@ global _start
 extern exit, clear_eflags, \
     string_length, print_string, print_char, print_newline, \
     print_uint, print_int, read_char, read_word, flush_stdin, \
-    parse_uint, parse_int
+    parse_uint, parse_int, string_equals, string_copy
 
 %include "lib.inc"
 
@@ -21,11 +21,17 @@ str1_len: equ $ - str1
 input_letter_msg: db "Input Letter> ", 0
 input_word_msg: db "Input Word> ", 0
 
+cmp_str_abcde_1: db "abcde", 0
+cmp_str_abcde_2: db "abcde", 0
+cmp_str_empty: db "", 0
+cmp_str_ab012: db "ab012", 0
+
 leave_msg: db "@ Program End", 0xA, 0
 
 %define MAIN_STACK_SIZE 1024
-%define READ_WORD_BUF 32
-%define PARSE_UINT_LENGTH 40
+%define READ_WORD_BUF 256
+%define PARSE_UINT_LEN 40
+%define STRING_COPY_BUF 64
 
 section .text
 _start:
@@ -134,13 +140,13 @@ _start:
     call parse_uint
     assert_callee_saved_exit
 
-    mov [rbp - PARSE_UINT_LENGTH], rdx
+    mov [rbp - PARSE_UINT_LEN], rdx
 
     mov rdi, rax
     call print_uint
     call print_newline
 
-    mov rdi, [rbp - PARSE_UINT_LENGTH]
+    mov rdi, [rbp - PARSE_UINT_LEN]
     call print_uint
     call print_newline
 
@@ -150,6 +156,85 @@ _start:
     call parse_int
     assert_callee_saved_exit
 
+    ; 文字列比較
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rel cmp_str_abcde_1]
+    save_callee_saved
+    call string_equals
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rel cmp_str_abcde_2]
+    save_callee_saved
+    call string_equals
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rel cmp_str_empty]
+    save_callee_saved
+    call string_equals
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rel cmp_str_ab012]
+    save_callee_saved
+    call string_equals
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    call print_newline
+
+    ; 文字列コピー
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rbp - STRING_COPY_BUF]
+    mov edx, 0
+    save_callee_saved
+    call string_copy
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rbp - STRING_COPY_BUF]
+    mov edx, 1
+    save_callee_saved
+    call string_copy
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rbp - STRING_COPY_BUF]
+    mov edx, 5
+    save_callee_saved
+    call string_copy
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
+
+    lea rdi, [rel cmp_str_abcde_1]
+    lea rsi, [rbp - STRING_COPY_BUF]
+    mov edx, 6
+    save_callee_saved
+    call string_copy
+    assert_callee_saved_exit
+
+    mov rdi, rax
+    call print_uint
 
     ; 最後のメッセージを出力
     lea edi, [rel leave_msg]
