@@ -1,9 +1,10 @@
 ;bits 64
 global _start
 
-extern exit, string_length, print_string, print_char, print_newline, \
+extern exit, clear_eflags, \
+    string_length, print_string, print_char, print_newline, \
     print_uint, print_int, read_char, read_word, flush_stdin, \
-    parse_uint
+    parse_uint, parse_int
 
 %include "lib.inc"
 
@@ -127,7 +128,7 @@ _start:
     ; 残りの入力バッファーをクリア
     call flush_stdin
 
-    ; 文字列->数値変換
+    ; 文字列->数値変換 (unsigned)
     lea rdi, [rbp - READ_WORD_BUF]
     save_callee_saved
     call parse_uint
@@ -143,6 +144,13 @@ _start:
     call print_uint
     call print_newline
 
+    ; 文字列->数値変換 (signed)
+    lea rdi, [rbp - READ_WORD_BUF]
+    save_callee_saved
+    call parse_int
+    assert_callee_saved_exit
+
+
     ; 最後のメッセージを出力
     lea edi, [rel leave_msg]
     call print_string
@@ -156,7 +164,35 @@ code_test:
     push rbp
     mov rbp, rsp
 
+    mov ecx, 1
+    test ecx, ecx
 
+    mov ecx, 0
+    test ecx, ecx
+
+    mov cl, '/'
+    sub cl, '0'
+
+    call clear_eflags
+    mov cl, 5
+    cmp cl, 9
+
+    call clear_eflags
+    mov cl, 'a'
+    cmp cl, '9'
+
+    mov cl, -1
+    add cl, -1
+
+    movsx rcx, cl
+
+    call clear_eflags
+    mov rax, 0x7fffffffffffffff
+    add rax, 1
+
+    call clear_eflags
+    mov rax, 0x8000000000000000
+    add rax, -1
 
     leave
     ret

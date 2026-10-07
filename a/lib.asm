@@ -1,7 +1,8 @@
 ;[bits 64]
-global exit, string_length, print_string, print_char, print_newline, \
+global exit, clear_eflags, \
+    string_length, print_string, print_char, print_newline, \
     print_uint, print_int, read_char, read_word, flush_stdin, \
-    parse_uint
+    parse_uint, parse_int
 
 %include "lib.inc"
 
@@ -19,6 +20,22 @@ exit:
     assert_func_entry_alignment
     mov eax, sys_exit
     syscall
+
+
+; eflags をクリア
+clear_eflags:
+    assert_func_entry_alignment
+%if 0
+    pushfq
+    pop rax
+    and rax, ~0x0cd5
+    push rax
+    popfq
+%else
+    mov eax, 1
+    test eax, eax
+%endif
+    ret
 
 
 ; 文字列長の算出
@@ -359,7 +376,7 @@ parse_uint:
     sub rsp, 16
     mov [rbp - PARSE_UINT_ARG_ADDR], rdi        ; 入力文字列の先頭アドレスを保存
 
-    xor r8, r8                                  ; 戻り数値保存
+    xor r8d, r8d                                ; 戻り数値保存
     xor ecx, ecx                                ; 入力文字列の 1byte
 
 .loop_start:
@@ -389,6 +406,72 @@ parse_uint:
     mov rax, r8
 
     sub rdi, [rbp - PARSE_UINT_ARG_ADDR]        ; 処理した長さを rdx に保存
+    mov rdx, rdi
+
+    leave
+    ret
+
+
+;
+%define PARSE_INT_ARG_ADDR 8
+
+parse_int:
+    assert_func_entry_alignment
+    push rbp
+    mov rbp, rsp
+
+    sub rsp, 16
+    mov [rbp - PARSE_INT_ARG_ADDR], rdi
+
+    xor ecx, ecx                            ; cl: 入力バッファの 1 バイト
+    xor r8d, r8d                            ; 合計用
+    xor r9d, r9d                            ; 負数の場合に 1
+
+    cmp byte [rdi], '-'
+    jne .check_plus
+    mov r9d, 1                              ; 文字列の先頭が '-' のときは r9d を 1
+    inc rdi
+    jmp .loop_start
+
+.check_plus:
+    cmp byte[rdi], '+'
+    jne .loop_start
+    inc rdi
+
+.loop_start:
+    mov cl, [rdi]
+    test cl, cl
+    jz .loop_break
+
+    sub cl, '0'
+    jc .loop_break
+    cmp cl, 9
+    ja .loop_break
+
+    test r9d, 1
+    jz .positive
+
+    ; 負数の場合
+    movsx rcx, cl                           ; cl(0～9)を64bitへ符号拡張
+    neg rcx
+
+.positive:
+    mov rax, r8
+    mov edx, 10
+    imul rdx
+    jo .loop_break
+
+    add rax, rcx
+    jo .loop_break
+
+    mov r8, rax
+
+    inc rdi
+    jmp .loop_start
+
+.loop_break:
+    mov rax, r8
+    sub rdi, [rbp - PARSE_INT_ARG_ADDR]
     mov rdx, rdi
 
     leave
