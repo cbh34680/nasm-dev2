@@ -330,9 +330,9 @@ flush_stdin0:
 .loop_start:
     assert_call_alignment
     call read_char
-    test eax, eax                       ; エラー又は中断なら終了
+    test eax, eax                               ; エラー又は中断なら終了
     jz .exit
-    cmp eax, 0xA                        ; 改行になったら終了
+    cmp eax, 0xA                                ; 改行になったら終了
     je .exit
 
     mov dword [rbp - 16], eax
@@ -429,13 +429,13 @@ parse_int:
     sub rsp, 16
     mov [rbp - PARSE_INT_ARG_ADDR], rdi
 
-    xor ecx, ecx                            ; cl: 入力バッファの 1 バイト
-    xor r8d, r8d                            ; 合計用
-    xor r9d, r9d                            ; 負数の場合に 1
+    xor ecx, ecx                                ; cl: 入力バッファの 1 バイト
+    xor r8d, r8d                                ; 合計用
+    xor r9d, r9d                                ; 負数の場合に 1
 
     cmp byte [rdi], '-'
     jne .check_plus
-    mov r9d, 1                              ; 文字列の先頭が '-' のときは r9d を 1
+    mov r9d, 1                                  ; 文字列の先頭が '-' のときは r9d を 1
     inc rdi
     jmp .loop_start
 
@@ -458,7 +458,7 @@ parse_int:
     jz .positive
 
     ; 負数の場合
-    movsx rcx, cl                           ; cl(0～9)を64bitへ符号拡張
+    movsx rcx, cl                               ; cl(0～9)を64bitへ符号拡張
     neg rcx
 
 .positive:
@@ -541,7 +541,7 @@ string_copy:
 .loop_start:
     mov rax, rsi
     sub rax, [rbp - STRING_COPY_SAVE_RSI]
-    cmp rax, rdx                                        ; 空き領域があるかチェック
+    cmp rax, rdx                                ; 空き領域があるかチェック
     jae .fault
 
     mov al, [rdi]
@@ -560,6 +560,5 @@ string_copy:
     mov eax, 0
 
 .last:
-
     leave
     ret
