@@ -237,7 +237,7 @@ _start:
     call print_uint
 
     ; 最後のメッセージを出力
-    lea edi, [rel leave_msg]
+    lea rdi, [rel leave_msg]
     call print_string
 
     mov edi, 2

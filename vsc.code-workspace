@@ -7,7 +7,7 @@
     "settings": {
         "debug.allowBreakpointsEverywhere": true,
         "nasm.extraFlags": [
-            "-I./a/"
+            "-I./lowlevelpg/"
         ],
     }
 }

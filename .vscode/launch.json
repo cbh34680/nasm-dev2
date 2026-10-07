@@ -6,7 +6,7 @@
       "type": "cppdbg",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/build/debug/a/a",
+      "program": "${workspaceFolder}/build/debug/lowlevelpg/lowlevelpg",
       "environment": [],
       "args": [
         "<",
