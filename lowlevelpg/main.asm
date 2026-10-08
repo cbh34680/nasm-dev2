@@ -1,5 +1,7 @@
 ;bits 64
-global _start
+global \
+    _start:function (_start.funcend - _start), \
+    start_msg:data hidden (start_msg.dataend - start_msg)
 
 extern exit, clear_eflags, \
     string_length, print_string, print_char, print_newline, \
@@ -11,12 +13,13 @@ extern exit, clear_eflags, \
 
 section .rodata
 start_msg: db "@ This is a program for learning purposes.", 0xA, 0
+.dataend:
 
-;str1: db "Hello\n"             ; このように書くと 'H' 'e' 'l' 'l' 'o' '\' 'n' の 7 文字と解釈される
-str1:   db "Hello"
-        db 0xA
-str1_len: equ $ - str1
-        db 0
+;str_hello: db "Hello\n"             ; このように書くと 'H' 'e' 'l' 'l' 'o' '\' 'n' の 7 文字と解釈される
+str_hello: db "Hello"
+    db 0xA
+str_hello_len: equ $ - str_hello
+    db 0
 
 input_letter_msg: db "Input Letter> ", 0
 input_word_msg: db "Input Word> ", 0
@@ -51,9 +54,9 @@ _start:
     call print_string
     assert_callee_saved_exit
 
-    mov eax, str1_len               ; rax=6
+    mov eax, str_hello_len               ; rax=6
 
-    lea rdi, [rel str1]
+    lea rdi, [rel str_hello]
     call string_length              ; rax=6
 
     call print_string
@@ -242,6 +245,7 @@ _start:
 
     mov edi, 2
     call exit
+.funcend:
 
 
 ; 調査用
@@ -278,6 +282,14 @@ code_test:
     call clear_eflags
     mov rax, 0x8000000000000000
     add rax, -1
+
+    xor eax, eax
+    mov al, 0xff
+    sar al, 1
+
+    xor eax, eax
+    mov al, 0xff
+    shr al, 1
 
     leave
     ret

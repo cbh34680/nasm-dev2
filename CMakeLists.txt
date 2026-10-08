@@ -14,4 +14,5 @@ endif()
 
 set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -g -F dwarf")
 
+add_subdirectory(a)
 add_subdirectory(lowlevelpg)

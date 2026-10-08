@@ -1,8 +1,20 @@
 ;[bits 64]
-global exit, clear_eflags, \
-    string_length, print_string, print_char, print_newline, \
-    print_uint, print_int, read_char, read_word, flush_stdin, \
-    parse_uint, parse_int, string_equals, string_copy
+global \
+    exit:function (exit.funcend - exit), \
+    clear_eflags:func (clear_eflags.funcend - clear_eflags), \
+    string_length:function, \
+    print_string:function, \
+    print_char:function, \
+    print_newline:function, \
+    print_uint:function, \
+    print_int:function, \
+    read_char:function, \
+    read_word:function, \
+    flush_stdin:function, \
+    parse_uint:function, \
+    parse_int:function, \
+    string_equals:function, \
+    string_copy:function
 
 %include "lib.inc"
 
@@ -20,6 +32,7 @@ exit:
     assert_func_entry_alignment
     mov eax, sys_exit
     syscall
+.funcend:
 
 
 ; eflags をクリア
@@ -36,6 +49,7 @@ clear_eflags:
     test eax, eax
 %endif
     ret
+.funcend:
 
 
 ; 文字列長の算出
@@ -72,6 +86,8 @@ print_string:
 
     mov eax, sys_write          ; 即値で 32 ビット範囲のときは 32 ビットレジスタを使う
     mov edi, STDOUT_FILENO      ; fd
+    ; rsi
+    ; rdx
     syscall
 
     add rsp, 8

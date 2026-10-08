@@ -1,0 +1,12 @@
+
+関数名をリスト
+    readelf -s
+    readelf -a                  全てのセクション
+
+逆アセンブル
+    objdump -d -M intel
+    objdump -S                  ソース付き
+
+実行結果の数値を調べる
+    システムコールのエラー時の戻り値は rax に設定され -14 のような数値になる
+    これは errno=14 と同じ意味となり、コマンド "errno 14" (moreutils) で調べられる
