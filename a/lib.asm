@@ -1,6 +1,6 @@
 ;bits 64
 global \
-    _start:function (_start.funcend - _start)
+    print_hello:function (print_hello.funcend - print_hello)
 
 
 section .rodata
@@ -10,10 +10,10 @@ start_msg: db "@ This is a program for learning purposes.", 0xA, 0
 start_msg_len: equ $ - start_msg - 1
 
 section .text
-_start:
-    and rsp, -16                    ; -16=0xfffffffffffffff0 と rsp を and することで、下位 4bit(0x0-0xf) の範囲をクリアする
-                                    ; 16byte 境界にそろえる (rsp%16 == 0)
+print_hello:
+    push rbp
     mov rbp, rsp
+    and rsp, -16
 
     ; 最初のメッセージ
     mov eax, 1
@@ -22,8 +22,6 @@ _start:
     mov rdx, start_msg_len
     syscall
 
-
-    mov eax, 60
-    mov edi, 2
-    syscall
+    leave
+    ret
 .funcend:

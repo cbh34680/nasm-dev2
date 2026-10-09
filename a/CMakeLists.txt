@@ -1,10 +1,10 @@
 
-add_executable(a main.asm)
+add_executable(a main.c lib.asm)
 
 target_include_directories(a PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # -no-pie フラグの設定（GCCリンカを使用する場合）
-#target_link_options(a PRIVATE -nostdlib -pie -e _start --dynamic-linker=/lib64/ld-linux-x86-64.so.2)
-target_link_options(a PRIVATE -nostdlib -no-pie -e _start)
+target_link_options(a PRIVATE -pie)
+#target_link_options(a PRIVATE -no-pie)
