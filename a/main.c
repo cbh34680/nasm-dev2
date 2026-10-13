@@ -27,5 +27,10 @@ int main(void)
     print_data("abcde", 6);
     puts("");
 
+    void* a = malloc(33);
+    void* b = malloc(1);
+
+    printf("%lu %lu %lu\n", a, b, b - a);
+
     return EXIT_SUCCESS;
 }

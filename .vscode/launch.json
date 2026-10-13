@@ -61,6 +61,17 @@
         }
       ],
       "preLaunchTask": "CMake: build"
+    },
+    {
+      "name": "Python3",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "args": [
+        "-l",
+        "5:100,5:100"
+      ],
+      "console": "integratedTerminal"
     }
   ]
 }
