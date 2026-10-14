@@ -29,8 +29,8 @@ print_data:
     push rbp
     mov rbp, rsp
     and rsp, -16
-    xchg rsi, rdx
-    xchg rdi, rsi
+    mov rdx, rsi
+    mov rsi, rdi
 
     mov eax, 1
     mov edi, 1

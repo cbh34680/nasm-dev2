@@ -6,5 +6,5 @@ target_include_directories(a PRIVATE
 )
 
 # -no-pie フラグの設定（GCCリンカを使用する場合）
-target_link_options(a PRIVATE -pie)
-#target_link_options(a PRIVATE -no-pie)
+#target_link_options(a PRIVATE -pie)
+target_link_options(a PRIVATE -no-pie)
