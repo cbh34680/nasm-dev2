@@ -21,12 +21,27 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },
+        {
+            "name": "release",
+            "inherits": "default",
+            "displayName": "Release Build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_FLAGS_RELEASE": "-O2",
+                "CMAKE_CXX_FLAGS_RELEASE": "-O2"
+            }
         }
     ],
     "buildPresets": [
         {
             "name": "debug",
             "configurePreset": "debug",
+            "jobs": 2
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
             "jobs": 2
         }
     ]

@@ -1,10 +1,8 @@
 
-add_executable(a main.c lib.asm)
+add_executable(a main.c)
 
-target_include_directories(a PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+target_include_directories(a PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # -no-pie フラグの設定（GCCリンカを使用する場合）
-#target_link_options(a PRIVATE -pie)
-target_link_options(a PRIVATE -no-pie)
+target_link_options(a PRIVATE -pie)
+#target_link_options(a PRIVATE -no-pie)

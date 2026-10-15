@@ -16,3 +16,4 @@ set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -ggdbg -F dwarf")
 
 add_subdirectory(a)
 add_subdirectory(lowlevelpg)
+add_subdirectory(thread)

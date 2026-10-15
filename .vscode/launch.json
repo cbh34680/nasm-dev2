@@ -31,6 +31,35 @@
       "preLaunchTask": "CMake: build"
     },
     {
+      "name": "CMake NASM Debug thread",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/build/debug/thread/thread",
+      "environment": [],
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "targetArchitecture": "x86_64",
+      "logging": {
+        "engineLogging": false
+      },
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": false
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": false
+        }
+      ],
+      "preLaunchTask": "CMake: build"
+    },
+    {
       "name": "CMake NASM Debug lowlevelpg",
       "type": "cppdbg",
       "request": "launch",
