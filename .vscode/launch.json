@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "CMake NASM Debug a",
+      "name": "a Debug",
       "type": "cppdbg",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -31,7 +31,7 @@
       "preLaunchTask": "CMake: build"
     },
     {
-      "name": "CMake NASM Debug thread",
+      "name": "thread Debug",
       "type": "cppdbg",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -60,7 +60,7 @@
       "preLaunchTask": "CMake: build"
     },
     {
-      "name": "CMake NASM Debug lowlevelpg",
+      "name": "lowlevelpg Debug",
       "type": "cppdbg",
       "request": "launch",
       "cwd": "${workspaceFolder}",

@@ -4,13 +4,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-int go = 0;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static int go = 0;
 
 /*
 #include <stdatomic.h>
-_Atomic*/ int g_count = 0;
+_Atomic*/
+static int g_count = 0;
 
 #if 0
 pthread_mutex_t m_count = PTHREAD_MUTEX_INITIALIZER;

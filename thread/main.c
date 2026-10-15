@@ -5,14 +5,14 @@
 #include <pthread.h>
 
 static void test_memory();
-void test_thread();
-static void test_asm();
+extern void test_thread();
+extern void test_sem();
 
 int main(void)
 {
     //test_memory();
     //test_thread();
-    test_asm();
+    test_sem();
 
     return EXIT_SUCCESS;
 }
@@ -61,19 +61,4 @@ static void test_memory()
 
     free(a);
     free(b);
-}
-
-static void test_asm()
-{
-    int i;
-
-    __asm__ volatile("mov %%ebx, %0\n"
-        : "=r"(i)
-        :
-        :
-    );
-
-    __asm__ volatile("" : : "r"(i));
-
-    printf("%d\n", i);
 }

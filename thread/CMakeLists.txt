@@ -2,7 +2,7 @@
 find_package(Threads REQUIRED)
 
 add_executable(thread main.c lib.asm
-    thr.c)
+    lock.c sem.c)
 
 target_include_directories(thread PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
