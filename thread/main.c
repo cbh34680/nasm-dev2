@@ -10,7 +10,7 @@ extern void test_sem();
 
 int main(void)
 {
-    //test_memory();
+    test_memory();
     //test_thread();
     test_sem();
 
