@@ -34,7 +34,7 @@ print_hello:
     lea rdi, [rax * 2 + rax]
 
     ; 'h' -> al
-    mov rax, start_msg + 3
+    lea rax, [rel start_msg + 3]
     mov al, [rax]
 
     ; 最初のメッセージ

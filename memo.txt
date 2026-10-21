@@ -1,4 +1,51 @@
 
+構文：p /<書式> <式や変数>
+    書式文字の一覧:
+        /x  - 16進数 (Hexadecimal)
+        /d  - 10進数 (Signed decimal)
+        /u  - 符号なし10進数 (Unsigned decimal)
+        /t  - 2進数 (Binary)
+        /o  - 8進数 (Octal)
+        /c  - 文字 (Character)
+        /s  - 文字列 (Null終端)
+        /f  - 浮動小数点数 (Float)
+
+    使用例:
+        (gdb) p/x my_var       ; 16進数で表示
+        (gdb) p/t $rax         ; レジスタを2進数で表示
+        (gdb) p/c 65           ; 'A' と表示
+
+
+構文：x /<個数><書式><サイズ> <アドレス>
+    1. 個数 (Count):
+        連続して読み込む数を 10 進数で指定する (省略時は 1)
+
+    2. 書式 (Format):
+        x  - 16進数
+        d  - 符号付き10進数
+        u  - 符号なし10進数
+        o  - 8進数
+        t  - 2進数
+        a  - 16進数 (オフセットとシンボル名も併記)
+        c  - 文字
+        s  - 文字列
+        f  - 浮動小数点数
+        i  - 逆アセンブル (機械語命令)
+
+    3. サイズ (Size):
+        b  - 1 バイト (Byte / 8 bit)
+        h  - 2 バイト (Halfword / 16 bit)
+        w  - 4 バイト (Word / 32 bit)
+        g  - 8 バイト (Giant word / 64 bit)
+
+    使用例:
+        (gdb) x/4xw $rsp       ; 4バイト(w)ずつ、16進数(x)で、4個(4)表示
+        (gdb) x/s 0x401000     ; 指定アドレスの文字列を表示
+        (gdb) x/10i $rip       ; 現在の命令から10行分逆アセンブル
+        (gdb) x/gx &my_var     ; 8バイト(g)の16進数(x)で1個表示
+
+
+
 システムコール一覧
     https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/?hl=ja-JP
 
