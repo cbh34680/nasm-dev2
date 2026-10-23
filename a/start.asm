@@ -1,19 +1,24 @@
 
 global \
     _start:function (_start.funcend - _start)
+
+extern main
+
 section .text
 
 _start:
     push rbp
     mov rbp, rsp
-    sub rsp, 256
-    lea r8, [rbp - 8]
+    and rsp, -16
 
+    mov rdi, [rbp + 8]
+    lea rsi, [rbp + 16]
+    lea rdx, [rsi + rdi * 8 + 8]
+    call main
+    mov rdi, rax
 
     mov eax, 60
-    mov edi, 10
     syscall
 
-    leave
-    ret
+    ud2
 .funcend:
