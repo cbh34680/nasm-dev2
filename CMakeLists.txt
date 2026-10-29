@@ -12,9 +12,11 @@ else()
     set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf32")
 endif()
 
-set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -ggdbg -F dwarf")
+set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -ggdb -F dwarf")
+#set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -ggdb")
 
 add_subdirectory(a)
+add_subdirectory(curses)
 add_subdirectory(callmain)
 add_subdirectory(lowlevelpg)
 add_subdirectory(str)

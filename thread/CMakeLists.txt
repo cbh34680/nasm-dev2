@@ -1,8 +1,4 @@
-
-find_package(Threads REQUIRED)
-
-add_executable(thread main.c lib.asm
-    lock.c sem.c)
+add_executable(thread main.c lib.asm lock.c sem.c)
 
 target_include_directories(thread PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -10,6 +6,7 @@ target_include_directories(thread PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_options(thread PRIVATE -pie)
 #target_link_options(thread PRIVATE -no-pie)
 
+find_package(Threads REQUIRED)
 target_link_libraries(thread PRIVATE Threads::Threads)
 
 message(STATUS "THREAD_LIBS=${CMAKE_THREAD_LIBS_INIT}")
